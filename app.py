@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # Custom CSS
-st.markdown("""
+st.markdown(""" 
 <style>
     .main {
         background-color: #f5f5f5;
@@ -73,7 +73,7 @@ if 'generated_image' not in st.session_state:
 def generate_mandala(prompt_word, api_key):
     """Generate mandala art using OpenAI's DALL·E 3 based on a single word"""
     
-    client = openai.Client(api_key=api_key)  # ✅ Fixed OpenAI Client Initialization
+    client = openai.OpenAI(api_key=api_key)  # ✅ Fixed OpenAI Client Initialization
 
     enhanced_prompt = f"Create a detailed symmetrical mandala art based on the concept of '{prompt_word}'. The mandala should have intricate patterns, be centered in the image, and have a pure white background. Make it visually striking with detailed ornamental elements."
 
@@ -138,7 +138,7 @@ if st.session_state.generated_image:
     st.image(
         st.session_state.generated_image, 
         caption=f"Mandala inspired by '{st.session_state.prompt_word}'", 
-        use_container_width=True
+        use_column_width=True  # ✅ Fixed Argument
     )
     
     # Add download button
