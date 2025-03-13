@@ -3,7 +3,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 import base64
-from openai import OpenAI
+import openai  # ✅ Fixed Import
 
 # Set page configuration
 st.set_page_config(
@@ -71,14 +71,14 @@ if 'generated_image' not in st.session_state:
     st.session_state.generated_image = None
 
 def generate_mandala(prompt_word, api_key):
-    """Generate mandala art using DALL-E 3 based on a single word"""
-    # Initialize OpenAI client with provided API key
-    client = OpenAI(api_key=api_key)
+    """Generate mandala art using OpenAI's DALL·E 3 based on a single word"""
     
+    client = openai.Client(api_key=api_key)  # ✅ Fixed OpenAI Client Initialization
+
     enhanced_prompt = f"Create a detailed symmetrical mandala art based on the concept of '{prompt_word}'. The mandala should have intricate patterns, be centered in the image, and have a pure white background. Make it visually striking with detailed ornamental elements."
-    
+
     try:
-        response = client.images.generate(
+        response = client.images.generate(  # ✅ Updated OpenAI API Call
             model="dall-e-3",
             prompt=enhanced_prompt,
             size="1024x1024",
@@ -86,12 +86,16 @@ def generate_mandala(prompt_word, api_key):
             n=1,
             response_format="b64_json"
         )
-        
-        # Decode the base64 image
+
+        # Debugging: Show API response on Streamlit Cloud
+        st.write("OpenAI API Response:", response)
+
+        # Decode base64 image
         image_data = base64.b64decode(response.data[0].b64_json)
         image = Image.open(BytesIO(image_data))
         return image, None
     except Exception as e:
+        st.error(f"❌ OpenAI API Error: {str(e)}")  # ✅ Debugging OpenAI Errors
         return None, str(e)
 
 def get_image_download_link(img, filename, text):
@@ -131,7 +135,6 @@ if generate_button:
                 
 # Display the generated image if available
 if st.session_state.generated_image:
-    # Updated from use_column_width to use_container_width
     st.image(
         st.session_state.generated_image, 
         caption=f"Mandala inspired by '{st.session_state.prompt_word}'", 
