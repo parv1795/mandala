@@ -6,3 +6,4 @@ openai==1.13.0
 requests==2.31.0
 numpy
 matplotlib
+python-dotenv
