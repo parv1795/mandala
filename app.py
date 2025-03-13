@@ -3,7 +3,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 import base64
-import openai  # ✅ Fixed Import
+from openai import OpenAI  # Updated modern import
 
 # Set page configuration
 st.set_page_config(
@@ -69,32 +69,33 @@ with st.sidebar:
 # Initialize session state for generated image
 if 'generated_image' not in st.session_state:
     st.session_state.generated_image = None
+    st.session_state.prompt_word = ""
 
 def generate_mandala(prompt_word, api_key):
     """Generate mandala art using OpenAI's DALL·E 3 based on a single word"""
     
-    client = openai.OpenAI(api_key=api_key)  # ✅ Fixed OpenAI Client Initialization
-
-    enhanced_prompt = f"Create a detailed symmetrical mandala art based on the concept of '{prompt_word}'. The mandala should have intricate patterns, be centered in the image, and have a pure white background. Make it visually striking with detailed ornamental elements."
-
     try:
-        response = client.images.generate(  # ✅ Corrected OpenAI API Call
+        # Create OpenAI client with API key
+        client = OpenAI(api_key=api_key)
+        
+        enhanced_prompt = f"Create a detailed symmetrical mandala art based on the concept of '{prompt_word}'. The mandala should have intricate patterns, be centered in the image, and have a pure white background. Make it visually striking with detailed ornamental elements."
+
+        response = client.images.generate(
             model="dall-e-3",
             prompt=enhanced_prompt,
             size="1024x1024",
             quality="standard",
             n=1,
-            response_format="b64_json"  # ✅ Ensure correct format
+            response_format="b64_json"
         )
 
-        # ✅ Extract and decode the base64 image
-        image_b64 = response.data[0].b64_json  # ✅ Extract Base64 Image
-        image_data = base64.b64decode(image_b64)  # ✅ Decode Base64
-        image = Image.open(BytesIO(image_data))  # ✅ Convert to Image
+        # Extract and decode the base64 image
+        image_b64 = response.data[0].b64_json
+        image_data = base64.b64decode(image_b64)
+        image = Image.open(BytesIO(image_data))
 
         return image, None
     except Exception as e:
-        st.error(f"❌ OpenAI API Error: {str(e)}")  # ✅ Debugging OpenAI Errors
         return None, str(e)
 
 def get_image_download_link(img, filename, text):
@@ -133,24 +134,28 @@ if generate_button:
                 st.session_state.prompt_word = prompt_word
                 
 # Display the generated image if available
-if st.session_state.generated_image:
-    st.image(
-        st.session_state.generated_image, 
-        caption=f"Mandala inspired by '{st.session_state.prompt_word}'", 
-        use_container_width=True
-    )
-    
-    # Add download button
-    st.markdown(
-        get_image_download_link(
+if st.session_state.generated_image is not None:
+    try:
+        st.image(
             st.session_state.generated_image, 
-            f"mandala_{st.session_state.prompt_word}", 
-            "⬇️ Download Mandala"
-        ),
-        unsafe_allow_html=True
-    )
-    
-    st.success("Your mandala has been created! Click the link above to download.")
+            caption=f"Mandala inspired by '{st.session_state.prompt_word}'", 
+            use_column_width=True
+        )
+        
+        # Add download button
+        st.markdown(
+            get_image_download_link(
+                st.session_state.generated_image, 
+                f"mandala_{st.session_state.prompt_word}", 
+                "⬇️ Download Mandala"
+            ),
+            unsafe_allow_html=True
+        )
+        
+        st.success("Your mandala has been created! Click the link above to download.")
+    except Exception as e:
+        st.error(f"Error displaying image: {str(e)}")
+        st.session_state.generated_image = None
 
 # Add a footer
 st.markdown("---")
