@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # Custom CSS
-st.markdown(""" 
+st.markdown("""
 <style>
     .main {
         background-color: #f5f5f5;
@@ -78,21 +78,20 @@ def generate_mandala(prompt_word, api_key):
     enhanced_prompt = f"Create a detailed symmetrical mandala art based on the concept of '{prompt_word}'. The mandala should have intricate patterns, be centered in the image, and have a pure white background. Make it visually striking with detailed ornamental elements."
 
     try:
-        response = client.images.generate(  # ✅ Updated OpenAI API Call
+        response = client.images.generate(  # ✅ Corrected OpenAI API Call
             model="dall-e-3",
             prompt=enhanced_prompt,
             size="1024x1024",
             quality="standard",
             n=1,
-            response_format="b64_json"
+            response_format="b64_json"  # ✅ Ensure correct format
         )
 
-        # Debugging: Show API response on Streamlit Cloud
-        st.write("OpenAI API Response:", response)
+        # ✅ Extract and decode the base64 image
+        image_b64 = response.data[0].b64_json  # ✅ Extract Base64 Image
+        image_data = base64.b64decode(image_b64)  # ✅ Decode Base64
+        image = Image.open(BytesIO(image_data))  # ✅ Convert to Image
 
-        # Decode base64 image
-        image_data = base64.b64decode(response.data[0].b64_json)
-        image = Image.open(BytesIO(image_data))
         return image, None
     except Exception as e:
         st.error(f"❌ OpenAI API Error: {str(e)}")  # ✅ Debugging OpenAI Errors
@@ -138,7 +137,7 @@ if st.session_state.generated_image:
     st.image(
         st.session_state.generated_image, 
         caption=f"Mandala inspired by '{st.session_state.prompt_word}'", 
-        use_column_width=True  # ✅ Fixed Argument
+        use_container_width=True
     )
     
     # Add download button
